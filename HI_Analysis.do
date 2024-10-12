@@ -50,7 +50,6 @@ tab v106,m
 svy: tab v106 v481, count format(%9.0f)
 svy: tab v106 v481, col format(%9.4f)
 
-tab s107a
 
 *Current marital status
 *tab v501
@@ -100,15 +99,16 @@ svy: tab v701 v481, count format(%9.0f)
 svy: tab v701 v481, col format(%9.4f)
 
 
-
 *husband occupation 
 *v705 (Farmer, day labourer, factory worker, driver, service holder, business, other)
 tab v704,m
 recode v704 99998=.
 recode v704 98=.
-recode v704 (0 61/62=1 "Not working") (12/15=2 "Farmer, Agricultural,fishing & poultry Worker") (51/52 16=3 "Business") (23 31 41=4 "Carpenter, Masson, Bus/taxi driver, Construction supervisor, Seamstresses/Tailor, Policeman, Armed services, Dai, Community health worker, FWA, Similar services") (21 11 22 96=5 "others"), gen(husband_occu)
+recode v704 0=.
+recode v704 61/62=.
+recode v704 (12/15=1 "Farmer, Agricultural,fishing & poultry Worker") (51/52 16=2 "Business") (23 31 41=3 "Carpenter, Masson, Bus/taxi driver, Construction supervisor, Seamstresses/Tailor, Policeman, Armed services, Dai, Community health worker, FWA, Similar services") (21 11 22 96=4 "others"), gen(husband_occu)
 
-label define husband_occu 1 "Not Working" 2 "Farmer, Agricultural,fishing & poultry Worker" 3 "Business" 4 "skilled worker" 5 "others", replace
+label define husband_occu 1 "Farmer, Agricultural,fishing & poultry Worker" 2 "Business" 3 "skilled worker" 4 "others", replace
 tab v704 husband_occu,m
 tab husband_occu v007,m
 
@@ -182,43 +182,31 @@ label define numofchild 1 "0" 2 "1-2" 3 "3+", replace
 svy: tab numofchild v481, count format(%9.0f)
 svy: tab numofchild v481, col format(%9.4f)
 
+*Logistic Model
 
-*all predictor variables 
-sum cod_usd cod_usd_log
+set cformat %9.2f
+svy: logit v481 ib2.age_cat, or
+svy: logit v481 i.v106, or
+svy: logit v481 i.v714, or
+svy: logit v481 ib3.bmi4a, or
+svy: logit v481 i.hage_cat, or
+svy: logit v481 i.v701, or
+svy: logit v481 i.husband_occu, or
+svy: logit v481 ib2.v025, or
+svy: logit v481 ib1.Division, or
+svy: logit v481 ib1.religon_cat, or
+svy: logit v481 ib1.WealthIndex, or
+svy: logit v481 ib3.household_member, or
+svy: logit v481 ib3.numofchild, or
 
-tab1 delivery_place delivery age_cat age_cat2 v024 v025 v106 v701 husband_occu v190 household_member bmi4a nlc massmedia_exposure anc_cat birthord_cat year,m 
+svy: logit v481 ib2.age_cat i.v106 i.v714 ib3.bmi4a i.hage_cat i.v701 i.husband_occu ib2.v025 ib1.Division ib1.religon_cat ib1.WealthIndex ib3.household_member ib3.numofchild, or
 
+regress v481 age_cat v106 v714 bmi4a hage_cat v701 husband_occu v025 Division religon_cat WealthIndex household_member numofchild
+vif
+rocreg
 
-********************************************************************************
-* ANALYSIS
-********************************************************************************
+logit v481 ib2.age_cat i.v106 i.v714 ib3.bmi4a i.hage_cat i.v701 i.husband_occu ib2.v025 ib1.Division ib1.religon_cat ib1.WealthIndex ib3.household_member ib3.numofchild, or
+estat ic
 
-use "ir-bdhs" , clear
-
-*outcome characterisics 
-tabstat cod_usd, by (delivery) stat(n mean sd p50 p25 p75), if year==2014
-tabstat cod_usd, by (delivery) stat(n mean sd p50 p25 p75), if year==2018
-
-
-*glm model 
-use "ir-bdhs" , clear
-keep if year==2014
-svy: glm cod_usd i.age_cat i.v024 i.v025 i.v106 i.v701 i.husband_occu i.v190 i.household_member i.bmi4a i.nlc i.massmedia_exposure i.anc_cat i.birthord_cat,family(gaussian) link(identity)
-
-
-
-keep if year==2018
-
-svy: regress cod_usd_log v013
-svy: regress cod_usd_log delivery age_cat v024 v025 v106 v701 husband_occu v190 household_member bmi4a nlc massmedia_exposure anc_cat birthord_cat
-
-
-sort delivery
-by delivery: regress cod_usd_log delivery age_cat v024 v025 v106 v701 husband_occu v190 household_member bmi4a nlc massmedia_exposure anc_cat birthord_cat
-svy: regress cod_usd_log i.delivery i.age_cat v024 v025 v106 v701 husband_occu v190 household_member bmi4a nlc massmedia_exposure anc_cat birthord_cat
-
-
-tab1 delivery_place delivery age_cat v024 v025 v106 v701 husband_occu v190 household_member bmi4a nlc massmedia_exposure anc_cat birthord_cat year,m 
-
-
-tab1 delivery_place delivery age_cat age_cat2 v024 v025 v106 v701 husband_occu v190 household_member bmi4a nlc massmedia_exposure anc_cat birthord_cat year,m 
+lroc
+roctab v481 p
