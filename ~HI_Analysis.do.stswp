@@ -106,7 +106,7 @@ recode v704 99998=.
 recode v704 98=.
 recode v704 (0 61/62=1 "Not working") (12/15=1 "Farmer, Agricultural,fishing & poultry Worker") (51/52 16=2 "Business") (23 31 41=3 "Carpenter, Masson, Bus/taxi driver, Construction supervisor, Seamstresses/Tailor, Policeman, Armed services, Dai, Community health worker, FWA, Similar services") (21 11 22 96=4 "others"), gen(husband_occu)
 
-label define husband_occu 0 "Not working" 1 "Farmer, Agricultural,fishing & poultry Worker" 2 "Business" 3 "skilled worker" 4 "others", replace
+label define husband_occu 1 "Farmer, Agricultural,fishing & poultry Worker" 2 "Business" 3 "skilled worker" 4 "others", replace
 tab v704 husband_occu,m
 tab husband_occu v007,m
 
